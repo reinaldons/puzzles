@@ -55,31 +55,93 @@ func print(x int, y int, mat matrix) {
 	for j := 0; j < y; j++ {
 		for i := 0; i < x; i++ {
 			s := '.'
-			if mat[j][i] {
-				s = '*'
-			}
+			if mat[j][i] { s = '*' }
 			fmt.Print(string(s))
 		}
 		fmt.Print("\n")
 	}
 }
 
-func main() {
-	s := parse()
-	//fmt.Println("--> ", s)
+func inArray(i int, a []int) bool {
+	for _, e := range a { if i == e { return true }	}
 
+	return false
+}
+
+func solve(line int, pos int, s Stars) matrix {
 	mat := make(matrix)
-
+	mat[line] = make(map[int] bool)
+	mat[line][(pos - 1)] = true
+	a := make([]int, s.x)
+	a[line] = pos
 	for j := 0; j < s.y; j++ {
-		for i := 0; i < s.x; i++ {
-			line := j * s.x + i;
-			mat[line] = make(map[int] bool)
-			mat[line][i] = true
-			mat[line][s.y + j] = true
-			mat[line][s.x + s.y + (int([]byte(s.input[j][i])[0]) - 49)] = true
+		if j == line { continue }
+		mat[j] = make(map[int] bool)
+		for i := 1; i <= s.y; i++ {
+			if inArray(i, a) { continue }
+			mat[j][(i - 1)] = true
+			a[j] = i
+			break
 		}
 	}
 
-	//fmt.Println(mat)
-	print(s.x, s.y, mat)
+	return mat
+}
+
+func inSolutions(mat matrix, mats []matrix) bool {
+	var same bool
+	for _, m := range mats {
+		same = true
+		if len(m) == 0 { continue }
+		for i, _ := range mat {
+			if mat[i][i] != m[i][i] {
+				same = false
+				break
+			}
+		}
+
+		if same { return true }
+	}
+
+        return false
+}
+
+func isValid(m matrix, s Stars) bool {
+	g := make(map[string] bool, len(s.groups))
+	for j := 0; j < s.y; j++ {
+		for i := 0; i < s.x; i++ {
+                        if m[j][i] {
+				if g[s.input[j][i]] {
+					return false
+				}
+				g[s.input[j][i]] = true
+			}
+		}
+	}
+
+	return true
+}
+
+func main() {
+	s := parse()
+	mat := make([]matrix, (s.x * s.y))
+
+	num := 0
+	for j := 0; j < s.y; j++ {
+		for i := 1; i <= s.x; i++ {
+			m := solve(j, i, s)
+			if inSolutions(m, mat) {
+				continue
+			}
+			mat[num] = m
+			num++
+		}
+	}
+
+	for _, m := range mat {
+		if len(m) == 0 { continue }
+		if isValid(m, s) {
+			print(s.x, s.y, m)
+		}
+	}
 }
