@@ -12,9 +12,6 @@ type Stars struct {
 	x int
 	y int
 	groups map[string] bool
-	corners int
-	lines int
-	columns int
 	input map[int] map[int] string
 }
 
@@ -39,13 +36,6 @@ func parse() (s Stars) {
 		l++
         }
 
-	s.corners = (s.x - 1) * (s.y -1)
-	fmt.Println("corners: ", s.corners)
-	s.lines = s.x * s.y + s.corners
-	fmt.Println("lines: ", s.lines)
-	s.columns = s.x + s.y + len(s.groups) + s.corners
-	fmt.Println("columns: ", s.columns)
-
 	return
 }
 
@@ -54,9 +44,9 @@ type matrix map[int] map[int] bool
 func print(x int, y int, mat matrix) {
 	for j := 0; j < y; j++ {
 		for i := 0; i < x; i++ {
-			s := '.'
-			if mat[j][i] { s = '*' }
-			fmt.Print(string(s))
+			str := '.'
+			if mat[j][i] { str = '*' }
+			fmt.Print(string(str))
 		}
 		fmt.Print("\n")
 	}
@@ -71,16 +61,16 @@ func inArray(i int, a []int) bool {
 func solve(line int, pos int, s Stars) matrix {
 	mat := make(matrix)
 	mat[line] = make(map[int] bool)
-	mat[line][(pos - 1)] = true
+	mat[line][pos] = true
 	a := make([]int, s.x)
-	a[line] = pos
-	for j := 0; j < s.y; j++ {
+	a[line] = pos + 1
+	for j := 0; j < s.y; j++ { // lines
 		if j == line { continue }
 		mat[j] = make(map[int] bool)
-		for i := 1; i <= s.y; i++ {
-			if inArray(i, a) { continue }
-			mat[j][(i - 1)] = true
-			a[j] = i
+		for i := 0; i <= s.y; i++ { // columns
+			if inArray(i + 1, a) { continue }
+			mat[j][i] = true
+			a[j] = i + 1
 			break
 		}
 	}
@@ -128,7 +118,7 @@ func main() {
 
 	num := 0
 	for j := 0; j < s.y; j++ {
-		for i := 1; i <= s.x; i++ {
+		for i := 0; i < s.x; i++ {
 			m := solve(j, i, s)
 			if inSolutions(m, mat) {
 				continue
@@ -144,4 +134,5 @@ func main() {
 			print(s.x, s.y, m)
 		}
 	}
+
 }
